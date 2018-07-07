@@ -22,11 +22,14 @@ def add_api_key(message, title):
     api_key_path = open(API_PATH, "w")
     alert(message, title)
     response = prompt('Public API key:')
+    # re-prompt user until the key is valid (by checking length)
     if len(response) != 64: add_api_key("Invalid key entered. Please re-enter public key", "Invalid key entered")
 
     api_key_path.write(response)
     api_key_path.close()
 
+
+if len(argv) != 2: exit(1)  # exits if it is not started from context menu
 
 USERNAME = getenv('username')
 API_PATH = r"C:\Users\{}\vt_public_api".format(USERNAME)  # put api in this path to prevent issues with permissions
@@ -40,14 +43,18 @@ CHECKSUM = md5(argv[1])  # "53a0a94fcd38c422caf334b44638c03d" (Mimikatz)
 URL = 'https://www.virustotal.com/vtapi/v2/file/report'
 PARAMS = {'apikey': PUBLIC_API_KEY, 'resource': CHECKSUM}
 
-response = requests.get(URL, params=PARAMS)
+try: response = requests.get(URL, params=PARAMS)
+except requests.RequestException:
+    balloon_tip("No internet", "Internet is required to scan item!")
+    exit(1)
+
 try: response = response.json()
 except ValueError:
     balloon_tip("No results", "There might be a problem with your API key or scanning frequency.")
-    exit(0)
+    exit(1)
 
 if not "scans" in response:
-    balloon_tip("Checksum not in databse", response["verbose_msg"])
+    balloon_tip("Checksum not in database", response["verbose_msg"])
     exit(1)
 
 PROGRAM_NAME = argv[1].split("\\")[-1]
@@ -57,7 +64,7 @@ for scan in response["scans"]:
     SCAN_REPORT.write("%-20s" % scan + " - Detection: " + str(response["scans"][scan]["detected"]))
     if response["scans"][scan]["detected"]: SCAN_REPORT.write(" (%s)" % response["scans"][scan]["result"])
     SCAN_REPORT.write("\n")
-    
+
 SCAN_REPORT.write("\nDetection ratio: " + str(response["positives"]) + "/" + str(response["total"]))
 SCAN_REPORT.close()
 
