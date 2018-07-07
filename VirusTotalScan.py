@@ -1,0 +1,65 @@
+import requests
+import hashlib
+from sys import argv, exit
+from pymsgbox import alert, prompt
+from os import path, getenv
+from TrayMessage import WindowsBalloonTip
+
+
+def balloon_tip(title, msg):
+    w = WindowsBalloonTip(title, msg)
+
+
+def md5(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
+
+def add_api_key(message, title):
+    api_key_path = open(API_PATH, "w")
+    alert(message, title)
+    response = prompt('Public API key:')
+    if len(response) != 64: add_api_key("Invalid key entered. Please re-enter public key", "Invalid key entered")
+
+    api_key_path.write(response)
+    api_key_path.close()
+
+
+USERNAME = getenv('username')
+API_PATH = r"C:\Users\{}\vt_public_api".format(USERNAME)  # put api in this path to prevent issues with permissions
+
+if not path.exists(API_PATH): add_api_key("Please enter your public API key", "Public API key required")
+elif len(open(API_PATH, "r").read()) != 64: add_api_key("API key found, but not valid. Please re-enter public key.", "Public API key required")
+
+PUBLIC_API_KEY = open(API_PATH, "r").read()
+CHECKSUM = md5(argv[1])  # "53a0a94fcd38c422caf334b44638c03d" (Mimikatz)
+
+URL = 'https://www.virustotal.com/vtapi/v2/file/report'
+PARAMS = {'apikey': PUBLIC_API_KEY, 'resource': CHECKSUM}
+
+response = requests.get(URL, params=PARAMS)
+try: response = response.json()
+except ValueError:
+    balloon_tip("No results", "There might be a problem with your API key or scanning frequency.")
+    exit(0)
+
+if not "scans" in response:
+    balloon_tip("Checksum not in databse", response["verbose_msg"])
+    exit(1)
+
+PROGRAM_NAME = argv[1].split("\\")[-1]
+SCAN_REPORT = open(r"C:\Users\{}\Scan report of {}.txt".format(USERNAME, PROGRAM_NAME), "a")
+
+for scan in response["scans"]:
+    SCAN_REPORT.write("%-20s" % scan + " - Detection: " + str(response["scans"][scan]["detected"]))
+    if response["scans"][scan]["detected"]: SCAN_REPORT.write(" (%s)" % response["scans"][scan]["result"])
+    SCAN_REPORT.write("\n")
+    
+SCAN_REPORT.write("\nDetection ratio: " + str(response["positives"]) + "/" + str(response["total"]))
+SCAN_REPORT.close()
+
+balloon_tip("Scan finished", "Detection ratio: " + str(response["positives"]) + "/" + str(response["total"]) +
+            "\nFull report written to C:\\Users\\{}\\Scan report of {}.txt".format(USERNAME, PROGRAM_NAME))
