@@ -11,6 +11,7 @@ def balloon_tip(title, msg):
 
 
 def md5(fname):
+    """Gets file checksum"""
     hash_md5 = hashlib.md5()
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
@@ -32,8 +33,9 @@ def add_api_key(message, title):
 if len(argv) != 2: exit(1)  # exits if it is not started from context menu
 
 USERNAME = getenv('username')
-API_PATH = r"C:\Users\{}\vt_public_api".format(USERNAME)  # put api in this path to prevent issues with permissions
+API_PATH = r"C:\Users\{}\vt_public_api".format(USERNAME)  # put api in this folder to prevent issues with permissions
 
+# if api key is not present on the computer, add it
 if not path.exists(API_PATH): add_api_key("Please enter your public API key", "Public API key required")
 elif len(open(API_PATH, "r").read()) != 64: add_api_key("API key found, but not valid. Please re-enter public key.", "Public API key required")
 
@@ -43,11 +45,13 @@ CHECKSUM = md5(argv[1])  # "53a0a94fcd38c422caf334b44638c03d" (Mimikatz)
 URL = 'https://www.virustotal.com/vtapi/v2/file/report'
 PARAMS = {'apikey': PUBLIC_API_KEY, 'resource': CHECKSUM}
 
+# try except to prevent generic error message and provide a more descriptive message
 try: response = requests.get(URL, params=PARAMS)
 except requests.RequestException:
     balloon_tip("No internet", "Internet is required to scan item!")
     exit(1)
 
+# also replaces generic error message
 try: response = response.json()
 except ValueError:
     balloon_tip("No results", "There might be a problem with your API key or scanning frequency.")
