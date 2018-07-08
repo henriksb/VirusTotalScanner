@@ -10,10 +10,60 @@ author: henriksb
 
 import requests
 import hashlib
-from sys import argv, exit
+from sys import exit, argv
 from pymsgbox import alert, prompt
 from os import path, getenv
 from TrayMessage import WindowsBalloonTip
+
+
+class Scan:
+    def __init__(self, program):
+        self.program_name = program.split("\\")[-1]
+        self.checksum = md5(program)
+        self.url = "https://www.virustotal.com/vtapi/v2/file/report"
+        self.response = ""
+
+        # if api key is not present on the computer, add it
+        if not path.exists(API_PATH):
+            self.api_key = add_api_key("Please enter your public API key", "Public API key required")
+        elif len(open(API_PATH, "r").read()) != 64:
+            self.api_key = add_api_key("API key found, but not valid. Please re-enter public key.",
+                                       "Public API key required")
+        else:
+            self.api_key = open(API_PATH).read()
+
+    def vp_scan(self):
+        params = {'apikey': self.api_key, 'resource': self.checksum}
+
+        # try except to prevent generic error message and provide a more descriptive message
+        try:
+            response = requests.get(self.url, params=params)
+            self.response = response.json()
+        except requests.RequestException:
+            balloon_tip("No internet", "Internet is required to scan item!")
+            exit(1)
+        except ValueError:
+            balloon_tip("No results", "There might be a problem with your API key or scanning frequency.")
+            exit(1)
+
+        if "scans" not in self.response:
+            balloon_tip("Checksum not in database", self.response["verbose_msg"])
+            exit(1)
+
+        balloon_tip("Scan finished",
+                    "Detection ratio: " + str(self.response["positives"]) + "/" + str(self.response["total"]) +
+                    "\nFull report written to C:\\Users\\{}\\Scan report of {}.txt".format(USERNAME, self.program_name))
+
+    def write_to_file(self):
+        scan_report = open(r"C:\Users\{}\Scan report of {}.txt".format(USERNAME, self.program_name), "a")
+
+        for scan in self.response["scans"]:
+            scan_report.write("%-20s" % scan + " - Detection: " + str(self.response["scans"][scan]["detected"]))
+            if self.response["scans"][scan]["detected"]: scan_report.write(" (%s)" % self.response["scans"][scan]["result"])
+            scan_report.write("\n")
+
+        scan_report.write("\nDetection ratio: " + str(self.response["positives"]) + "/" + str(self.response["total"]))
+        scan_report.close()
 
 
 def balloon_tip(title, msg):
@@ -35,57 +85,24 @@ def add_api_key(message, title):
     alert(message, title)
     key = prompt('Public API key:')
     # re-prompt user until the key is valid (by checking length)
-    if len(key) != 64: add_api_key("Invalid key entered. Please re-enter public key", "Invalid key entered")
+    try:
+        if len(key) != 64: add_api_key("Invalid key entered. Please re-enter public key", "Invalid key entered")
+    except TypeError:
+        exit(0)
 
     api_key_path.write(key)
     api_key_path.close()
 
+    return key
 
-if len(argv) != 2: exit(1)  # exits if it is not started from context menu
 
-USERNAME = getenv('username')
-API_PATH = r"C:\Users\{}\vt_public_api".format(USERNAME)  # put api in this folder to prevent issues with permissions
+if __name__ == "__main__":
+    if len(argv) != 2: exit(1)  # exits if it is not started from context menu
 
-# if api key is not present on the computer, add it
-if not path.exists(API_PATH):
-    add_api_key("Please enter your public API key", "Public API key required")
-elif len(open(API_PATH, "r").read()) != 64:
-    add_api_key("API key found, but not valid. Please re-enter public key.", "Public API key required")
+    FILE = argv[1]
+    USERNAME = getenv('username')
+    API_PATH = r"C:\Users\{}\vt_public_api".format(USERNAME)  # put api in this folder to prevent issues with permissions
 
-PUBLIC_API_KEY = open(API_PATH, "r").read()
-CHECKSUM = md5(argv[1])  # "53a0a94fcd38c422caf334b44638c03d" (Mimikatz)
-
-URL = 'https://www.virustotal.com/vtapi/v2/file/report'
-PARAMS = {'apikey': PUBLIC_API_KEY, 'resource': CHECKSUM}
-
-# try except to prevent generic error message and provide a more descriptive message
-try:
-    response = requests.get(URL, params=PARAMS)
-except requests.RequestException:
-    balloon_tip("No internet", "Internet is required to scan item!")
-    exit(1)
-
-# also replaces generic error message
-try:
-    response = response.json()
-except ValueError:
-    balloon_tip("No results", "There might be a problem with your API key or scanning frequency.")
-    exit(1)
-
-if "scans" not in response:
-    balloon_tip("Checksum not in database", response["verbose_msg"])
-    exit(1)
-
-PROGRAM_NAME = argv[1].split("\\")[-1]
-SCAN_REPORT = open(r"C:\Users\{}\Scan report of {}.txt".format(USERNAME, PROGRAM_NAME), "a")
-
-for scan in response["scans"]:
-    SCAN_REPORT.write("%-20s" % scan + " - Detection: " + str(response["scans"][scan]["detected"]))
-    if response["scans"][scan]["detected"]: SCAN_REPORT.write(" (%s)" % response["scans"][scan]["result"])
-    SCAN_REPORT.write("\n")
-
-SCAN_REPORT.write("\nDetection ratio: " + str(response["positives"]) + "/" + str(response["total"]))
-SCAN_REPORT.close()
-
-balloon_tip("Scan finished", "Detection ratio: " + str(response["positives"]) + "/" + str(response["total"]) +
-            "\nFull report written to C:\\Users\\{}\\Scan report of {}.txt".format(USERNAME, PROGRAM_NAME))
+    VirusTotalScan = Scan(FILE)
+    VirusTotalScan.vp_scan()
+    VirusTotalScan.write_to_file()
