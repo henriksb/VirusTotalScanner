@@ -14,8 +14,10 @@ To get started using VirusTotalScanner, simply download and execute the [install
 
 There are currently two different [releases](https://github.com/henriksb/VirusTotalScanner/releases) available.
 
-[First release](https://github.com/henriksb/VirusTotalScanner/releases/download/6/VirusTotalScanner_Installer.exe) (Only scanning)
-[Second release](https://github.com/henriksb/VirusTotalScanner/releases/download/14/VirusTotal_Installer.exe) (Scanning and upload)
+
+- [First release](https://github.com/henriksb/VirusTotalScanner/releases/download/6/VirusTotalScanner_Installer.exe) (Only scanning)
+
+- [Second release](https://github.com/henriksb/VirusTotalScanner/releases/download/14/VirusTotal_Installer.exe) (Scanning and upload)
 
 ## TODO:
 
