@@ -1,7 +1,7 @@
 ;Start
  
   !define MUI_PRODUCT "VirusTotal Scanner"
-  !define MUI_FILE "VirusTotalScanner"
+  !define MUI_FILE "VirusTotal"
   !define MUI_VERSION "1.0"
   !define MUI_BRANDINGTEXT "VirusTotal Scanner Version 1.0"
   CRCCheck On
@@ -11,13 +11,13 @@
 ;---------------------------------
 ;General
  
-  Name "VirusTotalScan"
-  OutFile "VirusTotalScanner_Installer.exe"
+  Name "VirusTotal"
+  OutFile "VirusTotal_Installer.exe"
   ShowInstDetails "show"
   ShowUninstDetails "show"
  
-  !define MUI_ICON "VirusTotalScan.ico"
-  !define MUI_UNICON "VirusTotalScan.ico"
+  !define MUI_ICON "VirusTotal.ico"
+  !define MUI_UNICON "VirusTotal.ico"
  
 ;--------------------------------
 ;Folder selection page
@@ -64,7 +64,9 @@ Section "Install"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}" "DisplayName" "${MUI_PRODUCT}"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}" "UninstallString" "$INSTDIR\Uninstall.exe"
   
-  WriteRegStr HKCR "*\shell\Scan with VirusTotal\command" ""  "C:\Program Files (x86)\VirusTotal Scanner\VirusTotalScanner.exe %1"
+;add context menu
+  WriteRegStr HKCR "*\shell\Scan with VirusTotal (Compare with database) [FAST]\command" ""  "C:\Program Files (x86)\VirusTotal Scanner\VirusTotal.exe %1 Scan"
+  WriteRegStr HKCR "*\shell\Upload to VirusTotal (New scan) [SLOW]\command" ""  "C:\Program Files (x86)\VirusTotal Scanner\VirusTotal.exe %1 Upload"
  
   WriteUninstaller "$INSTDIR\Uninstall.exe"
  
@@ -88,7 +90,8 @@ Section "Uninstall"
 ;Delete Uninstaller And Unistall Registry Entries
   DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\${MUI_PRODUCT}"
   DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${MUI_PRODUCT}"  
-  DeleteRegKey HKEY_CLASSES_ROOT "*\shell\Scan with VirusTotal"
+  DeleteRegKey HKEY_CLASSES_ROOT "*\shell\Scan with VirusTotal (Compare with database [FAST])"
+  DeleteRegKey HKEY_CLASSES_ROOT "*\shell\Upload to VirusTotal (New scan [SLOW])"
  
 SectionEnd
  
