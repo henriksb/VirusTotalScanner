@@ -6,7 +6,7 @@ After your scan you will get a pop-up message in your tray with the detection ra
 
 You will have to enter your VirusTotal public API key the first time you try to scan a program or if it is invalid. To get an API key, simply sign up to VirusTotal and find your key in the [settings](https://www.virustotal.com/#/settings/apikey).
 
-To get started using VirusTotalScanner, simply download and execute the [installer](https://github.com/henriksb/VirusTotalScanner/releases/download/1/VirusTotalScanner_Installer.exe).
+To get started using VirusTotalScanner, simply select one of the [releases](https://github.com/henriksb/VirusTotalScanner#releases) and download and execute it.
 
 ![GIF](https://raw.githubusercontent.com/henriksb/VirusTotalScanner/master/gif.gif)
 
