@@ -1,15 +1,5 @@
-"""
-Simple script that utilizes VirusTotals API to scan local
-files on your computer. There is an installer available for
-this script that adds it to your context menu so that scanning
-a program isn't harder than two clicks.
-
-virustotal API refrence: https://developers.virustotal.com/v2.0/reference
-author: henriksb
-"""
-
-import requests
 import hashlib
+from requests import get, RequestException
 from sys import exit, argv
 from pymsgbox import alert, prompt
 from os import path, getenv
@@ -17,29 +7,21 @@ from TrayMessage import WindowsBalloonTip
 
 
 class Scan:
-    def __init__(self, program):
+    def __init__(self, program, api_key):
         self.program_name = program.split("\\")[-1]
         self.checksum = md5(program)
         self.url = "https://www.virustotal.com/vtapi/v2/file/report"
         self.response = ""
-
-        # if api key is not present on the computer, add it
-        if not path.exists(API_PATH):
-            self.api_key = add_api_key("Please enter your public API key", "Public API key required")
-        elif len(open(API_PATH, "r").read()) != 64:
-            self.api_key = add_api_key("API key found, but not valid. Please re-enter public key.",
-                                       "Public API key required")
-        else:
-            self.api_key = open(API_PATH).read()
+        self.api_key = api_key
 
     def vp_scan(self):
         params = {'apikey': self.api_key, 'resource': self.checksum}
 
         # try except to prevent generic error message and provide a more descriptive message
         try:
-            response = requests.get(self.url, params=params)
+            response = get(self.url, params=params)
             self.response = response.json()
-        except requests.RequestException:
+        except RequestException:
             balloon_tip("No internet", "Internet is required to scan item!")
             exit(1)
         except ValueError:
@@ -55,6 +37,7 @@ class Scan:
                     "\nFull report written to C:\\Users\\{}\\Scan report of {}.txt".format(USERNAME, self.program_name))
 
     def write_to_file(self):
+        """Write a more detailed report of scan to file"""
         scan_report = open(r"C:\Users\{}\Scan report of {}.txt".format(USERNAME, self.program_name), "a")
 
         for scan in self.response["scans"]:
@@ -93,16 +76,22 @@ def add_api_key(message, title):
     api_key_path.write(key)
     api_key_path.close()
 
-    return key
-
 
 if __name__ == "__main__":
     if len(argv) != 2: exit(1)  # exits if it is not started from context menu
 
     FILE = argv[1]
     USERNAME = getenv('username')
-    API_PATH = r"C:\Users\{}\vt_public_api".format(USERNAME)  # put api in this folder to prevent issues with permissions
+    API_PATH = r"C:\Users\{}\vt_public_api".format(USERNAME)  # put key in this folder to prevent issues with permissions
 
-    VirusTotalScan = Scan(FILE)
+    # if api key is not present on the computer, add it
+    if not path.exists(API_PATH):
+        add_api_key("Please enter your public API key", "Public API key required")
+    elif len(open(API_PATH, "r").read()) != 64:
+        add_api_key("API key found, but not valid. Please re-enter public key.", "Public API key required")
+
+    API_KEY = open(API_PATH).read()
+
+    VirusTotalScan = Scan(FILE, API_KEY)
     VirusTotalScan.vp_scan()
     VirusTotalScan.write_to_file()
