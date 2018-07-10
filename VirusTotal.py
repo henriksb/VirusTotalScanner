@@ -31,19 +31,19 @@ class Scan:
             response = get(self.url, params=params)
             self.response = response.json()
         except RequestException:
-            balloon_tip("No internet", "Internet is required to scan item!")
+            balloon_tip("No internet", "Internet is required to scan item!", 5)
             exit(1)
         except ValueError:
-            balloon_tip("No results", "There might be a problem with your API key or scanning frequency.")
+            balloon_tip("No results", "There might be a problem with your API key or scanning frequency.", 5)
             exit(1)
 
         if "scans" not in self.response:
-            balloon_tip("Checksum not in database", self.response["verbose_msg"])
+            balloon_tip("Checksum not in database", self.response["verbose_msg"], 5)
             exit(1)
 
         balloon_tip("Scan finished",
                     "Detection ratio: " + str(self.response["positives"]) + "/" + str(self.response["total"]) +
-                    "\nFull report written to C:\\Users\\{}\\Scan report of {}.txt".format(USERNAME, self.program_name))
+                    "\nFull report written to C:\\Users\\{}\\Scan report of {}.txt".format(USERNAME, self.program_name), 10)
 
     def write_to_file(self):
         """Write a more detailed report of scan to file"""
@@ -74,19 +74,20 @@ class Upload:
             response = post(self.url, files=files, params=params)
             response = response.json()
         except RequestException:
-            balloon_tip("No internet", "Internet is required to scan item!")
+            balloon_tip("No internet", "Internet is required to upload item!", 5)
             exit(1)
         except ValueError:
-            balloon_tip("No results", "There might be a problem with your API key.")
+            balloon_tip("No results", "There might be a problem with your API key.", 5)
             exit(1)
 
         startfile(response["permalink"])
-        balloon_tip("Success", response["verbose_msg"])
+        balloon_tip("Successfully uploaded", response["verbose_msg"], 10)
 
 
-def balloon_tip(title, msg):
+def balloon_tip(title, msg, length):
     """Pop-up messagebox"""
-    w = WindowsBalloonTip(title, msg)
+    #MessageBox = WindowsBalloonTip()
+    MessageBox.ShowWindow(title, msg, length)
 
 
 def md5(file_name):
@@ -119,6 +120,8 @@ if __name__ == "__main__":
     USERNAME = getenv('username')
     API_PATH = r"C:\Users\{}\vt_public_api".format(USERNAME)  # put key in this folder to prevent issues with permissions
 
+    MessageBox = WindowsBalloonTip()  # for balloon_tip function
+
     # if api key is not present on the computer, add it
     if not path.exists(API_PATH):
         add_api_key("Please enter your public API key", "Public API key required")
@@ -128,9 +131,11 @@ if __name__ == "__main__":
     API_KEY = open(API_PATH).read()
 
     if argv[2] == "Upload":
+        balloon_tip("Upload starting", "Upload has started. This will take a few minutes.", 4)
         VirusTotalUpload = Upload(FILE, API_KEY)
         VirusTotalUpload.vp_upload()
     else:
+        balloon_tip("Scan starting", "Scan has started. This should not take very long.", 4)
         VirusTotalScan = Scan(FILE, API_KEY)
         VirusTotalScan.vp_scan()
         VirusTotalScan.write_to_file()
