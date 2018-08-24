@@ -1,10 +1,9 @@
 """
 Simple script that utilizes VirusTotals API to scan local
-files on your computer. There is an installer available for
+files for viruses. An installer is available for
 this script that adds it to your context menu so that scanning
-a program isn't harder than two clicks.
-virustotal API reference: https://developers.virustotal.com/v2.0/reference
-author: henriksb
+a file doesn't require more than two clicks.
+virustotal API refrence: https://developers.virustotal.com/v2.0/reference
 """
 
 import hashlib
