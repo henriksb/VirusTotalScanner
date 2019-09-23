@@ -2,7 +2,7 @@
 
 VirusTotalScanner is a Python script that utilizes the VirusTotal API to scan local files for malware. The installer script will add a compiled version of VirusTotalScanner to your context menu, allowing you to scan any program with a mere two clicks!
 
-After your scan you will get a pop-up message in your tray with the detection rate. It will also produce a more detailed text file where you can see which anti-virus detected your program and what it detected.
+After your scan, you will get a pop-up message in your tray with the detection rate. It will also produce a more detailed text file where you can see which anti-virus detected your program and what it detected.
 
 You will have to enter your VirusTotal public API key the first time you try to scan a program or if it is invalid. To get an API key, simply sign up to VirusTotal and find your key in the [settings](https://www.virustotal.com/#/settings/apikey).
 
