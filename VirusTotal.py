@@ -30,7 +30,7 @@ class Scan:
             response = get(self.url, params=params)
             self.response = response.json()
         except RequestException:
-            balloon_tip("No internet", "Internet is required to scan item!", 5)
+            balloon_tip("No internet", "Internet is required to scan application!", 5)
             exit(1)
         except ValueError:
             balloon_tip("No results", "There might be a problem with your API key or scanning frequency.", 5)
