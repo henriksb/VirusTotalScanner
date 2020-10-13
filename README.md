@@ -8,7 +8,9 @@ VirusTotalScanner is a Python script that utilizes the VirusTotal API to scan lo
 
 # 📁 Download and usage
 To get started using VirusTotalScanner, select one of the [releases](https://github.com/henriksb/VirusTotalScanner#releases), and download and execute it. There are currently two different versions of the script;
+
 [First release](https://github.com/henriksb/VirusTotalScanner/releases/download/6/VirusTotalScanner_Installer.exe)(Only scanning)
+
 [Second release](https://github.com/henriksb/VirusTotalScanner/releases/download/14/VirusTotal_Installer.exe) (Scanning and upload)
 
 The executables will add a compiled version of VirusTotalScanner to your context menu.
