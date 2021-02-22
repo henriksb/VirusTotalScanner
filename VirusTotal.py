@@ -73,7 +73,7 @@ class Upload:
             response = post(self.url, files=files, params=params)
             response = response.json()
         except RequestException:
-            balloon_tip("No internet", "Internet is required to upload item!", 5)
+            balloon_tip("No internet", "Internet is required to upload a file!", 5)
             exit(1)
         except ValueError:
             balloon_tip("No results", "There might be a problem with your API key.", 5)
