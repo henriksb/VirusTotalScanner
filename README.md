@@ -17,3 +17,5 @@ The executables will add a compiled version of VirusTotalScanner to your context
 
 You will have to enter your VirusTotal public API key the first time you scan a program or if it is invalid. To get an API key, sign up to VirusTotal, and find your key in the [settings](https://www.virustotal.com/#/settings/apikey).
 
+## ❗ Notice
+Unfortunately, the free API key only allows one daily scan now. This means that you will get an error if you try to scan more than once a day (the program won't crash, but the error message doesn't currently explain the problem). I can't do much about that, other than updating the error message.
